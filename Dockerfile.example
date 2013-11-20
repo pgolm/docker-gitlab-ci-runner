@@ -1,5 +1,5 @@
 # Info
-FROM		pgolm/gitlab-ci-runner
+FROM		pgolm/docker-gitlab-ci-runner
 MAINTAINER	pgolm "golm.peter@gmail.com"
 
 # Config
