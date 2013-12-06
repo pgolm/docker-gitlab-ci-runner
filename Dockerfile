@@ -1,29 +1,42 @@
-# Basic gitlab-ci-runner Image
+# pgolm/docker-gitlab-ci-runner
 
-FROM        ubuntu:12.04
+FROM        ubuntu:12.10
 MAINTAINER  pgolm "golm.peter@gmail.com"
 
+# Config
+ENV 		INSTALL_RUBY_VERSION 2.0.0-p247
 
 # apt-get deps
-
 RUN         apt-get update -y
-RUN         apt-get install -y -q sudo wget git build-essential libicu-dev lsb-release python-software-properties
+RUN         apt-get install -y -q sudo wget git build-essential libicu-dev \ 
+ lsb-release software-properties-common tklib zlib1g-dev libssl-dev \
+ libreadline-gplv2-dev libxml2 libxml2-dev libxslt1-dev
+
 RUN 		add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
 
-# install ruby 1.9.3, bundler
+# switch priveleges
+RUN 		adduser --disabled-login --gecos 'GitLab CI Runner' gitlab_ci_runner
+USER		gitlab_ci_runner
+ENV 		HOME /home/gitlab_ci_runner
 
-RUN         wget -O ruby-install-0.1.4.tar.gz https://github.com/postmodern/ruby-install/archive/v0.1.4.tar.gz
-RUN         tar -xzvf ruby-install-0.1.4.tar.gz
-RUN         ruby-install-0.1.4/bin/ruby-install -i /usr/local/ ruby 1.9.3 
-RUN         rm -rf ruby-install-0.1.4/ ruby-install-0.1.4.tar.gz
-RUN         gem install bundler
+# install ruby, bundler
+RUN 		wget -qO - https://raw.github.com/fesplugas/rbenv-installer/master/bin/rbenv-installer | bash
+ENV 		RBENV_ROOT ${HOME}/.rbenv
+ENV 		PATH ${RBENV_ROOT}/bin:${PATH}
+
+RUN 		rbenv install $INSTALL_RUBY_VERSION
+RUN 		rbenv global $INSTALL_RUBY_VERSION
+RUN 		echo "eval \"\$(rbenv init -)\"" >> $HOME/.profile
+RUN         . $HOME/.profile && gem install bundler
 
 # install gitlab-ci-runner
 
-RUN         git clone https://github.com/gitlabhq/gitlab-ci-runner.git gitlab-ci-runner
-RUN         cd gitlab-ci-runner && bundle install 
+WORKDIR 	/home/gitlab_ci_runner
+RUN         git clone https://github.com/gitlabhq/gitlab-ci-runner.git runner
+RUN         cd runner && . $HOME/.profile && bundle install 
 
-# ssh
-RUN 		mkdir -p /root/.ssh
-RUN 		touch /root/.ssh/known_hosts
-ENV			HOME /root
+# prepare SSH
+RUN         mkdir -p $HOME/.ssh
+
+WORKDIR 	$HOME/runner
+CMD 		. ../.profile && ssh-keyscan -H $GITLAB_SERVER_FQDN >> $HOME/.ssh/known_hosts && bundle exec ./bin/setup_and_run

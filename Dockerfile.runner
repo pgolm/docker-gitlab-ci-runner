@@ -1,0 +1,19 @@
+#
+# Run with -e CI_SERVER_URL=https://ci.example.com -e REGISTRATION_TOKEN=replaceme  -e GITLAB_SERVER_FQDN=ci.example.com
+#
+# Info
+FROM		pgolm/docker-gitlab-ci-runner
+MAINTAINER	pgolm "golm.peter@gmail.com"
+
+# Install deps
+USER		root
+RUN 		apt-get update -y
+RUN 		apt-get install -y -q build-essential
+
+# RUN
+USER		gitlab_ci_runner
+ENV 		HOME /home/gitlab_ci_runner
+RUN         mkdir -p $HOME/.ssh
+
+WORKDIR 	/home/gitlab_ci_runner/runner
+CMD 		. ../.profile && ssh-keyscan -H $GITLAB_SERVER_FQDN >> $HOME/.ssh/known_hosts && bundle exec ./bin/setup_and_run
