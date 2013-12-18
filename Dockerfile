@@ -38,5 +38,5 @@ RUN         cd runner && . $HOME/.profile && bundle install
 # prepare SSH
 RUN         mkdir -p $HOME/.ssh
 
-WORKDIR 	$HOME/runner
+CMD 	cd $HOME/runner
 CMD 		. ../.profile && ssh-keyscan -H $GITLAB_SERVER_FQDN >> $HOME/.ssh/known_hosts && bundle exec ./bin/setup_and_run
