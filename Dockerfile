@@ -33,7 +33,9 @@ RUN         . $HOME/.profile && gem install bundler
 
 WORKDIR 	/home/gitlab_ci_runner
 RUN         git clone https://github.com/gitlabhq/gitlab-ci-runner.git runner
-RUN         cd runner && . $HOME/.profile && bundle install 
+# Jan 02, 2014
+ENV 		RUNNER_REVISION 08f2260ae87e101f72194a27229b249d126e35fe
+RUN         cd runner && git checkout $RUNNER_REVISION && . $HOME/.profile && bundle install 
 
 # prepare SSH
 RUN         mkdir -p $HOME/.ssh
