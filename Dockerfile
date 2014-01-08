@@ -4,7 +4,7 @@ FROM        ubuntu:12.10
 MAINTAINER  pgolm "golm.peter@gmail.com"
 
 # Config
-ENV 		INSTALL_RUBY_VERSION 2.0.0-p247
+ENV 		INSTALL_RUBY_VERSION 2.1.0
 
 # apt-get deps
 RUN         apt-get update -y
